@@ -12,10 +12,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @RequestMapping("/inventory")
 @RequiredArgsConstructor
+@Validated
 public class InventoryController {
 
     private final InventoryService service;

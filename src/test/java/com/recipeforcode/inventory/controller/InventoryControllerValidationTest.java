@@ -110,4 +110,15 @@ class InventoryControllerValidationTest {
         mvc.perform(post("/inventory/reservations/RES-2/confirm"))
                 .andExpect(status().isConflict());
     }
+
+
+    @Test
+    void shouldReturnBadRequestOnConstraintViolationForPathVariable() throws Exception {
+        String tooLongId = "X".repeat(60); // exceeds @Size(max=50)
+
+        mvc.perform(post("/inventory/reservations/" + tooLongId + "/confirm"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Constraint Violation"))
+                .andExpect(jsonPath("$.errors['confirm.reservationId']").exists());
+    }
 }
