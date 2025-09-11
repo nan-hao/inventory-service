@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -59,10 +60,17 @@ public class GlobalExceptionHandler {
     // Global fallback for unhandled exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ProblemDetail> fallback(Exception ex) {
+        if (ex instanceof ResponseStatusException rse) {
+            HttpStatus status = HttpStatus.valueOf(rse.getStatusCode().value());
+            ProblemDetail pd = ProblemDetail.forStatus(status);
+            pd.setTitle(status.getReasonPhrase());
+            pd.setDetail(rse.getReason() != null ? rse.getReason() : rse.getMessage());
+            return ResponseEntity.status(status).body(pd);
+        }
+
         HttpStatus status = (ex instanceof org.springframework.dao.DataIntegrityViolationException)
                 ? HttpStatus.CONFLICT
                 : HttpStatus.INTERNAL_SERVER_ERROR;
-
         ProblemDetail pd = ProblemDetail.forStatus(status);
         pd.setTitle(status == HttpStatus.INTERNAL_SERVER_ERROR ? "Internal Server Error" : status.getReasonPhrase());
         pd.setDetail(ex.getMessage());
