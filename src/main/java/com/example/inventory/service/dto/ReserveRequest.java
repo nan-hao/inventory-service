@@ -3,6 +3,7 @@ package com.example.inventory.service.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 /**
@@ -13,10 +14,10 @@ import java.util.List;
  * - ttlSec: time-to-live window (in seconds).
  */
 public record ReserveRequest(
-        @NotBlank String reservationId,
+        @NotBlank @Size(max = 50) String reservationId,
         @NotEmpty List<Item> items,
         @Min(1) long ttlSec
 ) {
     /** Single product line within the reservation request. */
-    public record Item(@NotBlank String productCode, @Min(1) int qty) {}
+    public record Item(@NotBlank @Size(max = 50) String productCode, @Min(1) int qty) {}
 }

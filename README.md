@@ -11,7 +11,6 @@ Provides reservation and confirmation of Items with idempotency, backed by PG tr
 - Springdoc OpenAPI (Swagger UI)
 - Testcontainers (Postgres for integration tests)
 - Docker
-
 ---
 
 ## Getting Started
@@ -63,10 +62,27 @@ docker compose logs -f
 docker compose down -v
 ```
 
-### Observability
+### Quick Verify
 
+After `docker compose up -d --build`:
+
+- Health: `curl -s http://localhost:8081/actuator/health | jq` (expect `"status":"UP"`)
+- API Docs (JSON): `curl -s http://localhost:8081/v3/api-docs | jq '.info'`
+- Swagger UI: open http://localhost:8081/swagger-ui.html
 - Prometheus metrics: scrape `http://localhost:8081/actuator/prometheus`.
-  Example scrape config:
+- Reserve (idempotent):
+  ```bash
+  curl -sS -X POST http://localhost:8081/inventory/reservations \
+    -H "Content-Type: application/json" \
+    -d '{"reservationId":"RES-LOCAL-1","items":[{"productCode":"PROD-001","qty":2}],"ttlSec":300}' | jq
+  ```
+- Confirm:
+  ```bash
+  curl -sS -X POST http://localhost:8081/inventory/reservations/RES-LOCAL-1/confirm | jq
+  ```
+
+### Observability
+  Example Prometheus scrape config:
   
   ```yaml
   scrape_configs:
@@ -78,27 +94,6 @@ docker compose down -v
 - JSON logging: logs are JSON-formatted and include a correlation id in MDC.
 - Correlation ID: send `X-Correlation-Id` header; if missing, the service generates one and echoes it back.
 
-### Endpoints
-- Swagger UI: http://localhost:8081/swagger-ui.html
-- Health: http://localhost:8081/actuator/health
-
-### Example API Calls
-1. Reserve Items
-```bash
-curl -X POST http://localhost:8081/inventory/reservations \
-  -H "Content-Type: application/json" \
-  -d '{
-        "reservationId": "RES-12345",
-        "items": [
-          { "productCode": "PROD-001", "qty": 1 }
-        ],
-        "ttlSec": 600
-      }'
-```
-2. Confirm Items
-```bash
-curl -X POST http://localhost:8081/inventory/reservations/RES-12345/confirm
-```
-
-### Notes
+### Constraints
 - Hibernate `ddl-auto` is `update` for convenience. For production, use managed migrations (e.g., Liquibase/Flyway).
+- No authentication/authorization is enforced by default. Do not expose this service publicly without upstream protection. A minimal API key filter exists but is disabled unless `api.security.api-key` is configured; proper auth (e.g., JWT via Spring Security or gateway enforcement) will be added in a future iteration.
