@@ -43,7 +43,10 @@ public class Reservation {
         Reservation r = new Reservation();
         r.setReservationId(reservationId);
         r.setStatus(ReservationStatus.PENDING);
-        r.setExpiresAt(expiresAt);
+        // Normalize precision to microseconds to match Postgres TIMESTAMP storage
+        long nanos = expiresAt.getNano();
+        long normalizedNanos = nanos - (nanos % 1_000); // drop sub-microsecond precision
+        r.setExpiresAt(Instant.ofEpochSecond(expiresAt.getEpochSecond(), normalizedNanos));
         return r;
     }
 
