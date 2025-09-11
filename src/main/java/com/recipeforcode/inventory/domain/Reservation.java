@@ -33,7 +33,8 @@ public class Reservation {
     @Version
     private Long version;
 
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "reservation_id", nullable = false)
     private List<ReservationItem> items = new ArrayList<>();
 
     /**
@@ -61,7 +62,6 @@ public class Reservation {
             }
         }
         ReservationItem it = new ReservationItem();
-        it.setReservation(this);
         it.setProductCode(productCode);
         it.setQty(qty);
         items.add(it);
