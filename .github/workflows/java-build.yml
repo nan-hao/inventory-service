@@ -1,4 +1,4 @@
-name: Java 24 Build
+name: Build pipeline
 
 on:
   push:
@@ -20,25 +20,20 @@ jobs:
           java-version: '24'
           cache: 'maven'
 
-      - name: Build and test with Maven
-        run: mvn -B -ntp verify
-
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
         with:
-          name: test-reports
-          path: |
-            **/target/surefire-reports/**
-            **/target/failsafe-reports/**
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
-      - name: SonarCloud Scan
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn -B -ntp sonar:sonar \
-            -Dsonar.organization=${{ vars.SONAR_ORG }} \
-            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }} \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=nan-hao_inventory-service
