@@ -1,5 +1,10 @@
 # Inventory Service
 
+[![Java 24 Build](https://github.com/nan-hao/inventory-service/actions/workflows/java-build.yml/badge.svg?branch=main)](https://github.com/nan-hao/inventory-service/actions/workflows/java-build.yml)
+![Java](https://img.shields.io/badge/Java-24-007396?logo=java)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=nan-hao_inventory-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=nan-hao_inventory-service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=nan-hao_inventory-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=nan-hao_inventory-service)
+
 Inventory Service exposing minimal APIs to support order creation.
 Provides reservation and confirmation of Items with idempotency, backed by PG transactions. Designed for high concurrency via virtual threads.
 
