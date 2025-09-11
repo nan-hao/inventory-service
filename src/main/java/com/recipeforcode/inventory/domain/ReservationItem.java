@@ -17,8 +17,6 @@ public class ReservationItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Reservation relationship is managed unidirectionally from Reservation via @OneToMany + @JoinColumn
-
     @Column(name = "product_code", length = 50, nullable = false)
     private String productCode;
 

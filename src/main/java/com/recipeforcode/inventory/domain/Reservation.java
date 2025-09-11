@@ -22,7 +22,7 @@ public class Reservation {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private ReservationStatus status; // PENDING | CONFIRMED
+    private ReservationStatus status;
 
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
@@ -44,7 +44,7 @@ public class Reservation {
         Reservation r = new Reservation();
         r.setReservationId(reservationId);
         r.setStatus(ReservationStatus.PENDING);
-        // Normalize precision to microseconds to match Postgres TIMESTAMP storage
+
         long nanos = expiresAt.getNano();
         long normalizedNanos = nanos - (nanos % 1_000); // drop sub-microsecond precision
         r.setExpiresAt(Instant.ofEpochSecond(expiresAt.getEpochSecond(), normalizedNanos));
