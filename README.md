@@ -1,6 +1,6 @@
 # Inventory Service
 
-[![Java 24 Build](https://github.com/nan-hao/inventory-service/actions/workflows/java-build.yml/badge.svg?branch=main)](https://github.com/nan-hao/inventory-service/actions/workflows/java-build.yml)
+[![Java Build](https://github.com/nan-hao/inventory-service/actions/workflows/java-build.yml/badge.svg?branch=main)](https://github.com/nan-hao/inventory-service/actions/workflows/java-build.yml)
 ![Java](https://img.shields.io/badge/Java-24-007396?logo=java)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=nan-hao_inventory-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=nan-hao_inventory-service)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=nan-hao_inventory-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=nan-hao_inventory-service)
@@ -101,4 +101,5 @@ After `docker compose up -d --build`:
 
 ### Constraints
 - Hibernate `ddl-auto` is `update` for convenience. For production, use managed migrations (e.g., Liquibase/Flyway).
-- No authentication/authorization is enforced by default. Do not expose this service publicly without upstream protection. A minimal API key filter exists but is disabled unless `api.security.api-key` is configured; proper auth (e.g., JWT via Spring Security or gateway enforcement) will be added in a future iteration.
+- No authentication/authorization is enforced by default. Do not expose this service publicly without upstream protection.
+
