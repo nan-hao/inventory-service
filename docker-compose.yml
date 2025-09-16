@@ -22,6 +22,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        GITHUB_PACKAGES_USER: ${GITHUB_PACKAGES_USER}
+        GITHUB_PACKAGES_TOKEN: ${GITHUB_PACKAGES_TOKEN}
     image: inventory-service:local
     container_name: inventory-service
     environment:
@@ -34,6 +37,8 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+volumes:
+  pgdata:
 
 networks:
   default:
