@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,6 +22,9 @@ jobs:
           distribution: 'temurin'
           java-version: '24'
           cache: 'maven'
+          server-id: github-recipeforcode-platform
+          server-username: ${{ github.actor }}
+          server-password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
@@ -83,5 +89,8 @@ jobs:
         with:
           context: .
           push: true
+          build-args: |
+            GITHUB_PACKAGES_USER=${{ github.actor }}
+            GITHUB_PACKAGES_TOKEN=${{ secrets.GITHUB_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

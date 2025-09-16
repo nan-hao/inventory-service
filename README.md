@@ -34,6 +34,30 @@ Datasource settings are environment specific (with local-friendly defaults):
 
 Server runs on port `8081` (change via `server.port`).
 
+### Local Maven Settings (GitHub Packages)
+To build and run the app locally (outside Docker), Maven must authenticate to your GitHub Packages registry to resolve the parent POM and internal starters.
+
+Create `~/.m2/settings.xml` with the following content (do not commit this file):
+
+```
+<settings>
+  <servers>
+    <server>
+      <!-- Must match the <repository> id in this project's pom.xml -->
+      <id>github-recipeforcode-platform</id>
+      <username>your-github-username</username>
+      <!-- A Personal Access Token with read:packages scope -->
+      <password>ghp_your_token_with_read_packages</password>
+    </server>
+  </servers>
+</settings>
+```
+
+Notes:
+- Use a classic PAT with `read:packages`. Fine-grained tokens also work if they grant access to the package repository.
+- The `<id>` must be exactly `github-recipeforcode-platform` to match this repo’s `<repositories>` and `<pluginRepositories>`.
+- After creating the file, verify with: `mvn -B -ntp -DskipTests dependency:resolve`
+
 ### Run Locally
 ```bash
 mvn spring-boot:run
@@ -55,6 +79,24 @@ docker run --rm -p 8081:8081 \
 ```
 
 ### Docker Compose (Postgres + App)
+Authentication for GitHub Packages is required to resolve the parent POM during the Docker build.
+
+1) Create a `.env` file in the repo root (or export these env vars):
+
+```
+GITHUB_PACKAGES_USER=your-github-username
+GITHUB_PACKAGES_TOKEN=ghp_your_token_with_read_packages
+```
+
+Why credentials are required: the project inherits from and depends on internal artifacts published to GitHub Packages under your org. Maven must authenticate to download them during the Docker build.
+
+- Parent POM: `com.recipeforcode:recipeforcode-parent` (0.2.x)
+- Starters: `com.recipeforcode:recipeforcode-starter-observability`, `com.recipeforcode:recipeforcode-starter-openapi`
+
+Token scope required: `read:packages`.
+
+2) Build and start:
+
 ```bash
 docker compose up -d --build
 ```
@@ -66,6 +108,13 @@ Logs and teardown:
 docker compose logs -f
 docker compose down -v
 ```
+
+Notes:
+- `Dockerfile` injects `/root/.m2/settings.xml` during the build using the values from
+  `GITHUB_PACKAGES_USER` and `GITHUB_PACKAGES_TOKEN`. These are passed from `docker-compose.yml`
+  as build args.
+- Alternatively, you can avoid build args by maintaining a `~/.m2/settings.xml` on the build host
+  with a `<server id="github-recipeforcode-platform">` entry, then build with plain `docker build`.
 
 ### Quick Verify
 
@@ -102,4 +151,3 @@ After `docker compose up -d --build`:
 ### Constraints
 - Hibernate `ddl-auto` is `update` for convenience. For production, use managed migrations (e.g., Liquibase/Flyway).
 - No authentication/authorization is enforced by default. Do not expose this service publicly without upstream protection.
-
