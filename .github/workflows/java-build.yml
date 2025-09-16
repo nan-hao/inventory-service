@@ -44,7 +44,9 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -s ${{ steps.setup-java.outputs.settings-path }} -B -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          SETTINGS_PATH="${{ steps.setup-java.outputs.settings-path }}"
+          if [ -z "$SETTINGS_PATH" ]; then SETTINGS_PATH=".mvn/settings.xml"; fi
+          mvn -s "$SETTINGS_PATH" -B -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.organization=${{ vars.SONAR_ORG }} \
             -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
 

@@ -6,6 +6,8 @@ WORKDIR /app
 # Cache dependencies first
 ARG GITHUB_PACKAGES_USER
 ARG GITHUB_PACKAGES_TOKEN
+ENV GITHUB_PACKAGES_USER=${GITHUB_PACKAGES_USER}
+ENV GITHUB_PACKAGES_TOKEN=${GITHUB_PACKAGES_TOKEN}
 COPY pom.xml .
 RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
     mvn -q -DskipTests dependency:go-offline
