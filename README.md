@@ -58,6 +58,35 @@ Notes:
 - The `<id>` must be exactly `github-recipeforcode-platform` to match this repo’s `<repositories>` and `<pluginRepositories>`.
 - After creating the file, verify with: `mvn -B -ntp -DskipTests dependency:resolve`
 
+### Project-local Maven settings (committed, sanitized)
+This repo commits a sanitized `.mvn/settings.xml` that references environment variables instead of hardcoding credentials:
+
+```
+<settings>
+  <servers>
+    <server>
+      <id>github-recipeforcode-platform</id>
+      <username>${env.GITHUB_PACKAGES_USER}</username>
+      <password>${env.GITHUB_PACKAGES_TOKEN}</password>
+    </server>
+  </servers>
+</settings>
+```
+
+Usage:
+- Local Maven: export the variables before building, e.g.
+  - `export GITHUB_PACKAGES_USER=your-github-username`
+  - `export GITHUB_PACKAGES_TOKEN=ghp_your_token_with_read_packages`
+  - `mvn -DskipTests verify`
+- Docker Compose build: put the variables in a `.env` file in repo root (gitignored):
+  - `GITHUB_PACKAGES_USER=your-github-username`
+  - `GITHUB_PACKAGES_TOKEN=ghp_your_token_with_read_packages`
+  - Then `docker compose up -d --build`
+
+Notes:
+- Docker builds still use BuildKit to mount `.mvn/settings.xml` as a secret; credentials are injected via build args and not written into image layers.
+- CI injects `${{ github.actor }}` and `${{ secrets.GITHUB_TOKEN }}` as build args and also mounts a generated settings.xml for Maven.
+
 ### Run Locally
 ```bash
 mvn spring-boot:run
@@ -79,21 +108,9 @@ docker run --rm -p 8081:8081 \
 ```
 
 ### Docker Compose (Postgres + App)
-Authentication for GitHub Packages is required to resolve the parent POM during the Docker build.
+Authentication for GitHub Packages is required to resolve the parent POM during the Docker build. Compose forwards your local Maven `settings.xml` to the build using BuildKit secrets.
 
-1) Create a `.env` file in the repo root (or export these env vars):
-
-```
-GITHUB_PACKAGES_USER=your-github-username
-GITHUB_PACKAGES_TOKEN=ghp_your_token_with_read_packages
-```
-
-Why credentials are required: the project inherits from and depends on internal artifacts published to GitHub Packages under your org. Maven must authenticate to download them during the Docker build.
-
-- Parent POM: `com.recipeforcode:recipeforcode-parent` (0.2.x)
-- Starters: `com.recipeforcode:recipeforcode-starter-observability`, `com.recipeforcode:recipeforcode-starter-openapi`
-
-Token scope required: `read:packages`.
+1) Ensure your local `~/.m2/settings.xml` is configured (see section above).
 
 2) Build and start:
 
@@ -110,11 +127,13 @@ docker compose down -v
 ```
 
 Notes:
-- `Dockerfile` injects `/root/.m2/settings.xml` during the build using the values from
-  `GITHUB_PACKAGES_USER` and `GITHUB_PACKAGES_TOKEN`. These are passed from `docker-compose.yml`
-  as build args.
-- Alternatively, you can avoid build args by maintaining a `~/.m2/settings.xml` on the build host
-  with a `<server id="github-recipeforcode-platform">` entry, then build with plain `docker build`.
+- The Docker build uses BuildKit secrets to mount your `~/.m2/settings.xml` at build time; credentials are not written into image layers.
+- If `docker compose` can't find your settings file, ensure `${HOME}/.m2/settings.xml` exists and you are using a recent Docker/Compose version with BuildKit enabled.
+
+Why credentials are required: the project inherits from and depends on internal artifacts published to GitHub Packages under your org. Maven must authenticate to download them during the Docker build.
+
+- Parent POM: `com.recipeforcode:recipeforcode-parent`
+- Starters: `com.recipeforcode:recipeforcode-starter-observability`, `com.recipeforcode:recipeforcode-starter-openapi`
 
 ### Quick Verify
 
