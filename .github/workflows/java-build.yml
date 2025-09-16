@@ -43,6 +43,8 @@ jobs:
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_PACKAGES_USER: ${{ github.actor }}
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           SETTINGS_PATH="${{ steps.setup-java.outputs.settings-path }}"
           if [ -z "$SETTINGS_PATH" ]; then SETTINGS_PATH=".mvn/settings.xml"; fi
