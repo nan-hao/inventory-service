@@ -2,6 +2,8 @@ server:
   port: 8081
 
 spring:
+  application:
+    name: inventory-service
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/inventory}
     username: ${SPRING_DATASOURCE_USERNAME:inv}
@@ -16,8 +18,28 @@ spring:
     virtual:
       enabled: true
 
+recipeforcode:
+  observability:
+    service: inventory-service
+    mdc-headers: [User-Id]
+  environment: ${ENVIRONMENT:local}
+  openapi:
+    title: Inventory Service API
+    description: Inventory Service API documentation
+    version: 1.0.0
+
+
 management:
   endpoints:
     web:
       exposure:
         include: health,info,prometheus
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: WARN
+        orm:
+          jdbc:
+            bind: WARN
