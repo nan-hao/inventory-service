@@ -8,14 +8,15 @@ ARG GITHUB_PACKAGES_USER
 ARG GITHUB_PACKAGES_TOKEN
 ENV GITHUB_PACKAGES_USER=${GITHUB_PACKAGES_USER}
 ENV GITHUB_PACKAGES_TOKEN=${GITHUB_PACKAGES_TOKEN}
+RUN mkdir -p /root/.m2
 COPY pom.xml .
 RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
-    mvn -q -DskipTests dependency:go-offline
+    mvn -s /root/.m2/settings.xml -q -DskipTests dependency:go-offline
 
 # Build application
 COPY src ./src
 RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
-    mvn -q -DskipTests package
+    mvn -s /root/.m2/settings.xml -q -DskipTests package
 
 # Runtime stage
 FROM eclipse-temurin:24-jre

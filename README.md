@@ -95,7 +95,12 @@ mvn spring-boot:run
 ### Docker
 Build the image:
 ```bash
-docker build -t inventory-service:local .
+DOCKER_BUILDKIT=1 \\
+docker build \\
+  --secret id=maven_settings,src=.mvn/settings.xml \\
+  --build-arg GITHUB_PACKAGES_USER=$GITHUB_PACKAGES_USER \\
+  --build-arg GITHUB_PACKAGES_TOKEN=$GITHUB_PACKAGES_TOKEN \\
+  -t inventory-service:local .
 ```
 
 Run the container, pointing to your DB:
