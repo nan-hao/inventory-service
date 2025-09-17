@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.vscode
+**/*.iml
+.DS_Store
+target/*
+!target/*.jar
+node_modules
+mvnw
+mvnw.cmd
+.mvn/

@@ -15,7 +15,7 @@ Provides reservation and confirmation of Items with idempotency, backed by PG tr
 - Spring Boot 3.5.x
 - Springdoc OpenAPI (Swagger UI)
 - Testcontainers (Postgres for integration tests)
-- Docker
+- Docker (Azul Zulu JRE 25 runtime)
 ---
 
 ## Getting Started
@@ -59,7 +59,7 @@ Notes:
 - After creating the file, verify with: `mvn -B -ntp -DskipTests dependency:resolve`
 
 ### Project-local Maven settings (committed, sanitized)
-This repo commits a sanitized `.mvn/settings.xml` that references environment variables instead of hardcoding credentials:
+This repo commits a sanitized `.mvn/settings.xml` that references environment variables instead of hardcoding credentials. This is useful for local development but is not required for Docker builds anymore, since the Docker image is runtime-only and expects a prebuilt JAR:
 
 ```
 <settings>
@@ -78,14 +78,9 @@ Usage:
   - `export GITHUB_PACKAGES_USER=your-github-username`
   - `export GITHUB_PACKAGES_TOKEN=ghp_your_token_with_read_packages`
   - `mvn -DskipTests verify`
-- Docker Compose build: put the variables in a `.env` file in repo root (gitignored):
-  - `GITHUB_PACKAGES_USER=your-github-username`
-  - `GITHUB_PACKAGES_TOKEN=ghp_your_token_with_read_packages`
-  - Then `docker compose up -d --build`
 
 Notes:
-- Docker builds still use BuildKit to mount `.mvn/settings.xml` as a secret; credentials are injected via build args and not written into image layers.
-- CI injects `${{ github.actor }}` and `${{ secrets.GITHUB_TOKEN }}` as build args and also mounts a generated settings.xml for Maven.
+- CI uses `actions/setup-java` to generate a temporary `settings.xml` with server credentials for GitHub Packages.
 
 ### Run Locally
 ```bash
@@ -93,15 +88,17 @@ mvn spring-boot:run
 ```
 
 ### Docker
-Build the image:
+This repo now uses a runtime-only Docker image (Azul Zulu JRE 25). Build the JAR locally first, then build the image:
+
 ```bash
-DOCKER_BUILDKIT=1 \\
-docker build \\
-  --secret id=maven_settings,src=.mvn/settings.xml \\
-  --build-arg GITHUB_PACKAGES_USER=$GITHUB_PACKAGES_USER \\
-  --build-arg GITHUB_PACKAGES_TOKEN=$GITHUB_PACKAGES_TOKEN \\
-  -t inventory-service:local .
+# Build the JAR locally (optionally skip tests)
+mvn -DskipTests package
+
+# Build the runtime image (copies target/*.jar)
+docker build -t inventory-service:local .
 ```
+
+Note: When Eclipse Temurin publishes official Java 25 JRE images, the base image may switch back to `eclipse-temurin:25-jre`.
 
 Run the container, pointing to your DB:
 ```bash
@@ -113,13 +110,10 @@ docker run --rm -p 8081:8081 \
 ```
 
 ### Docker Compose (Postgres + App)
-Authentication for GitHub Packages is required to resolve the parent POM during the Docker build. Compose forwards your local Maven `settings.xml` to the build using BuildKit secrets.
-
-1) Ensure your local `~/.m2/settings.xml` is configured (see section above).
-
-2) Build and start:
+Compose builds the image from the prebuilt JAR. Build the JAR first, then start the stack:
 
 ```bash
+mvn -DskipTests package
 docker compose up -d --build
 ```
 - App: http://localhost:8081
@@ -132,10 +126,15 @@ docker compose down -v
 ```
 
 Notes:
-- The Docker build uses BuildKit secrets to mount your `~/.m2/settings.xml` at build time; credentials are not written into image layers.
-- If `docker compose` can't find your settings file, ensure `${HOME}/.m2/settings.xml` exists and you are using a recent Docker/Compose version with BuildKit enabled.
+- No credentials are needed for Docker builds, since the image only copies the locally built JAR.
+  Maven still needs credentials when you run `mvn` locally to resolve internal dependencies from GitHub Packages.
 
-Why credentials are required: the project inherits from and depends on internal artifacts published to GitHub Packages under your org. Maven must authenticate to download them during the Docker build.
+Why credentials are required for Maven: the project inherits from and depends on internal artifacts published to GitHub Packages under your org. Maven must authenticate to download them during the local build.
+
+### CI/CD
+- Build job: uses JDK 25 (Zulu), caches Maven, runs tests + Sonar, and uploads the built JAR as an artifact.
+- Docker job: downloads the JAR artifact and builds/pushes a runtime-only image based on `azul/zulu-openjdk:25-jre`.
+- Benefits: single Maven build per commit, smaller image, no secrets in Docker layers.
 
 - Parent POM: `com.recipeforcode:recipeforcode-parent`
 - Starters: `com.recipeforcode:recipeforcode-starter-observability`, `com.recipeforcode:recipeforcode-starter-openapi`

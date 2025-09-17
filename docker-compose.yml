@@ -22,11 +22,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        GITHUB_PACKAGES_USER: ${GITHUB_PACKAGES_USER}
-        GITHUB_PACKAGES_TOKEN: ${GITHUB_PACKAGES_TOKEN}
-      secrets:
-        - maven_settings
     image: inventory-service:local
     container_name: inventory-service
     environment:
@@ -45,7 +40,3 @@ volumes:
 networks:
   default:
     name: inventory-net
-
-secrets:
-  maven_settings:
-    file: ./.mvn/settings.xml

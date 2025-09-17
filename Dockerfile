@@ -1,29 +1,10 @@
-# Build stage
 # syntax=docker/dockerfile:1.7
-FROM maven:3.9-eclipse-temurin-24 AS build
+# Runtime-only image; JAR is built in CI
+FROM azul/zulu-openjdk:25-jre
 WORKDIR /app
 
-# Cache dependencies first
-ARG GITHUB_PACKAGES_USER
-ARG GITHUB_PACKAGES_TOKEN
-ENV GITHUB_PACKAGES_USER=${GITHUB_PACKAGES_USER}
-ENV GITHUB_PACKAGES_TOKEN=${GITHUB_PACKAGES_TOKEN}
-RUN mkdir -p /root/.m2
-COPY .mvn/settings.xml /root/.m2/settings.xml
-COPY pom.xml .
-RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
-    mvn -s /root/.m2/settings.xml -q -DskipTests dependency:go-offline
-
-# Build application
-COPY src ./src
-RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
-    mvn -s /root/.m2/settings.xml -q -DskipTests package
-
-# Runtime stage
-FROM eclipse-temurin:24-jre
-WORKDIR /app
-
-COPY --from=build /app/target/*.jar /app/app.jar
+# Copy the already-built Spring Boot fat JAR from the CI workspace
+COPY target/*.jar /app/app.jar
 
 EXPOSE 8081
 ENTRYPOINT ["java","-jar","/app/app.jar"]

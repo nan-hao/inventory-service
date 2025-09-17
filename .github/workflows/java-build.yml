@@ -33,13 +33,6 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -51,6 +44,13 @@ jobs:
           mvn -s "$SETTINGS_PATH" -B -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.organization=${{ vars.SONAR_ORG }} \
             -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
+
+      - name: Upload app JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: target/*.jar
+          if-no-files-found: error
 
   docker:
     name: Build and Push Docker image
@@ -80,16 +80,17 @@ jobs:
         env:
           OWNER: ${{ github.repository_owner }}
 
-      - name: Set up settings.xml for package auth
-        id: setup-java-docker
-        uses: actions/setup-java@v5
+      - name: Download app JAR artifact
+        uses: actions/download-artifact@v4
         with:
-          distribution: 'zulu'
-          java-version: '25'
-          cache: 'maven'
-          server-id: github-recipeforcode-platform
-          server-username: ${{ github.actor }}
-          server-password: ${{ secrets.GITHUB_TOKEN }}
+          name: app-jar
+          path: app-jar
+
+      - name: Prepare build context
+        run: |
+          mkdir -p target
+          shopt -s nullglob
+          for f in app-jar/*.jar; do cp -v "$f" target/; done
 
       - name: Docker metadata
         id: meta
@@ -105,10 +106,7 @@ jobs:
         with:
           context: .
           push: true
-          build-args: |
-            GITHUB_PACKAGES_USER=${{ github.actor }}
-            GITHUB_PACKAGES_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          secrets: |
-            id=maven_settings,src=${{ steps.setup-java-docker.outputs.settings-path }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
