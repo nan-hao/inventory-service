@@ -1,10 +1,36 @@
 <settings>
   <servers>
     <server>
-      <!-- Must match the <repository> id in pom.xml -->
       <id>github-recipeforcode-platform</id>
       <username>${env.GITHUB_PACKAGES_USER}</username>
       <password>${env.GITHUB_PACKAGES_TOKEN}</password>
     </server>
   </servers>
+  <profiles>
+    <profile>
+      <id>github-packages</id>
+      <repositories>
+        <repository>
+          <id>github-recipeforcode-platform</id>
+          <name>GitHub Packages recipeforcode-platform</name>
+          <url>https://maven.pkg.github.com/nan-hao/recipeforcode-platform</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>github-recipeforcode-platform</id>
+          <url>https://maven.pkg.github.com/nan-hao/recipeforcode-platform</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+  <activeProfiles>
+    <activeProfile>github-packages</activeProfile>
+  </activeProfiles>
 </settings>

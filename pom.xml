@@ -1,24 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
 		<groupId>com.recipeforcode</groupId>
 		<artifactId>recipeforcode-parent</artifactId>
-		<version>0.3.0</version>
+		<version>0.3.2</version>
 		<relativePath/>
 	</parent>
-	<groupId>com.recipeforcode</groupId>
+
 	<artifactId>inventory-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>inventory-service</name>
 	<description>Inventory Service exposing minimal APIs to support order creation. Provides reservation and
 		confirmation of Items with idempotency, backed by PG transactions. Designed for high concurrency via virtual threads.</description>
+
 	<properties>
 		<sonar.organization>recipeforcode</sonar.organization>
 		<sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 		<sonar.coverage.exclusions>**/InventoryServiceApplication.java</sonar.coverage.exclusions>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.recipeforcode</groupId>
@@ -78,29 +81,8 @@
 		</dependency>
 	</dependencies>
 
-	<repositories>
-		<repository>
-			<id>github-recipeforcode-platform</id>
-			<name>GitHub Packages recipeforcode-platform</name>
-			<url>https://maven.pkg.github.com/nan-hao/recipeforcode-platform</url>
-		</repository>
-	</repositories>
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.14.0</version>
-				<configuration>
-					<release>${java.version}</release>
-					<annotationProcessorPaths>
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</path>
-					</annotationProcessorPaths>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -115,5 +97,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
