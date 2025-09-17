@@ -1,7 +1,7 @@
 # Inventory Service
 
 [![Java Build](https://github.com/nan-hao/inventory-service/actions/workflows/java-build.yml/badge.svg?branch=main)](https://github.com/nan-hao/inventory-service/actions/workflows/java-build.yml)
-![Java](https://img.shields.io/badge/Java-24-007396?logo=java)
+![Java](https://img.shields.io/badge/Java-25-007396?logo=java)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=nan-hao_inventory-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=nan-hao_inventory-service)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=nan-hao_inventory-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=nan-hao_inventory-service)
 
@@ -11,7 +11,7 @@ Provides reservation and confirmation of Items with idempotency, backed by PG tr
 ---
 
 ## Tech Stack
-- Java 24
+- Java 25
 - Spring Boot 3.5.x
 - Springdoc OpenAPI (Swagger UI)
 - Testcontainers (Postgres for integration tests)
@@ -21,7 +21,7 @@ Provides reservation and confirmation of Items with idempotency, backed by PG tr
 ## Getting Started
 
 ### Prerequisites
-- Java 24
+- Java 25
 - Maven 3.9+
 - Docker & Docker Compose
 
